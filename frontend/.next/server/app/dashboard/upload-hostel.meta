@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/upload-hostel/layout,_N_T_/dashboard/upload-hostel/page,_N_T_/dashboard/upload-hostel"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/dashboard/upload-hostel/__PAGE__",
+    "/dashboard/upload-hostel",
+    "/dashboard",
+    "/_index"
+  ]
+}

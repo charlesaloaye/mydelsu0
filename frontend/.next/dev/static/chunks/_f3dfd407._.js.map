@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/mac/Desktop/mydelsu/frontend/app/page.jsx"],"sourcesContent":["\"use client\";\nimport { useEffect } from \"react\";\nimport { useRouter } from \"next/navigation\";\n\nexport default function HomePage() {\n  const router = useRouter();\n\n  useEffect(() => {\n    // Redirect to login page\n    router.push(\"/auth/login\");\n  }, [router]);\n\n  return (\n    <div className=\"min-h-screen bg-gray-50 flex items-center justify-center\">\n      <div className=\"text-center\">\n        <div className=\"animate-spin rounded-full h-12 w-12 border-b-2 border-[#488bbf] mx-auto mb-4\"></div>\n        <p className=\"text-gray-600\">Redirecting to login...</p>\n      </div>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;AACA;AACA;;;AAFA;;;AAIe,SAAS;;IACtB,MAAM,SAAS,IAAA,kJAAS;IAExB,IAAA,0KAAS;8BAAC;YACR,yBAAyB;YACzB,OAAO,IAAI,CAAC;QACd;6BAAG;QAAC;KAAO;IAEX,qBACE,6LAAC;QAAI,WAAU;kBACb,cAAA,6LAAC;YAAI,WAAU;;8BACb,6LAAC;oBAAI,WAAU;;;;;;8BACf,6LAAC;oBAAE,WAAU;8BAAgB;;;;;;;;;;;;;;;;;AAIrC;GAhBwB;;QACP,kJAAS;;;KADF","debugId":null}},
+    {"offset": {"line": 73, "column": 0}, "map": {"version":3,"sources":["file:///Users/mac/Desktop/mydelsu/frontend/node_modules/next/navigation.js"],"sourcesContent":["module.exports = require('./dist/client/components/navigation')\n"],"names":[],"mappings":"AAAA,OAAO,OAAO","ignoreList":[0],"debugId":null}}]
+}

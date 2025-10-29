@@ -1,0 +1,3 @@
+module.exports=[11797,a=>{"use strict";var b=a.i(7997);function c(){return(0,b.jsx)("div",{className:"min-h-screen bg-gray-50 flex items-center justify-center",children:(0,b.jsxs)("div",{className:"text-center",children:[(0,b.jsx)("div",{className:"animate-spin rounded-full h-12 w-12 border-b-2 border-[#488bbf] mx-auto mb-4"}),(0,b.jsx)("p",{className:"text-gray-600",children:"Loading..."})]})})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=app_loading_jsx_cb0e4f3c._.js.map
