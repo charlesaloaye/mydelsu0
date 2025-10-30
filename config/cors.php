@@ -25,7 +25,8 @@ return [
         'http://localhost:3001',
         'http://127.0.0.1:3001',
         'https://mydelsu.vercel.app',
-        'https://mydelsu.com'
+        'https://mydelsu.com',
+        'https://mydelsu-a0wi3a2ow-charlesaloayes-projects.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],
