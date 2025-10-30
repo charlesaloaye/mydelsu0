@@ -24,7 +24,8 @@ return [
         'http://127.0.0.1:3000',
         'http://localhost:3001',
         'http://127.0.0.1:3001',
-        // Add your frontend domain here
+        'https://mydelsu.vercel.app',
+        'https://mydelsu.com'
     ],
 
     'allowed_origins_patterns' => [],
