@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\DailyRewardController;
 use App\Http\Controllers\Api\CourseSummariesController;
 use App\Http\Controllers\Api\PastQuestionsController;
+use App\Http\Controllers\Api\DocumentController;
 use App\Models\Course;
 
 /*
@@ -161,6 +162,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload/question', [UploadController::class, 'uploadQuestion']);
     Route::post('/upload/project', [UploadController::class, 'uploadProject']);
     Route::post('/upload/hostel', [UploadController::class, 'uploadHostel']);
+
+    // User documents and storage
+    Route::get('/storage/usage', [DocumentController::class, 'usage']);
+    Route::get('/documents', [DocumentController::class, 'index']);
+    Route::post('/documents', [DocumentController::class, 'store']);
+    Route::put('/documents/{id}/rename', [DocumentController::class, 'rename']);
+    Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+    Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
 
     // Referrals
     Route::get('/referrals', [UserController::class, 'referrals']);
