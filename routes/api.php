@@ -30,6 +30,13 @@ use App\Http\Controllers\Api\PastQuestionsController;
 |
 */
 
+Route::get('/', function () {
+    return response()->json([
+        'message' => 'Welcome to myDelsu API',
+        'version' => '1.0.0'
+    ]);
+});
+
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
