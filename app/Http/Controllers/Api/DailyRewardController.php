@@ -59,7 +59,6 @@ class DailyRewardController extends Controller
                 'amount' => $rewardAmount,
                 'description' => $description,
                 'status' => 'completed',
-                'payment_method' => 'system',
                 'reference' => 'DAILY_REWARD_' . time() . '_' . $user->id
             ]);
 

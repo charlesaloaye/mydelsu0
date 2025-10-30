@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MarketplaceItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class EventsController extends Controller
@@ -98,6 +99,15 @@ class EventsController extends Controller
     public function store(Request $request)
     {
         try {
+            // Enforce: Only verified users can post events
+            $user = Auth::user();
+            if (!$user || !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can post events.'
+                ], 403);
+            }
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
@@ -125,7 +135,7 @@ class EventsController extends Controller
                 'date',
                 'time'
             ]);
-            $eventData['user_id'] = auth()->id();
+            $eventData['user_id'] = Auth::id();
             $eventData['category'] = 'events';
 
             // Handle image uploads
@@ -156,9 +166,18 @@ class EventsController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Enforce: Only verified users can update their events
+            $user = Auth::user();
+            if (!$user || !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can update events.'
+                ], 403);
+            }
+
             $event = MarketplaceItem::where('id', $id)
                 ->where('category', 'events')
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->first();
 
             if (!$event) {
@@ -224,9 +243,18 @@ class EventsController extends Controller
     public function destroy($id)
     {
         try {
+            // Enforce: Only verified users can delete their events
+            $user = Auth::user();
+            if (!$user || !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can delete events.'
+                ], 403);
+            }
+
             $event = MarketplaceItem::where('id', $id)
                 ->where('category', 'events')
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->first();
 
             if (!$event) {
@@ -254,7 +282,7 @@ class EventsController extends Controller
     {
         try {
             $query = MarketplaceItem::where('category', 'events')
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->orderBy('created_at', 'desc');
 
             $events = $query->paginate(12);

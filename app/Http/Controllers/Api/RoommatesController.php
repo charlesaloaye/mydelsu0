@@ -82,6 +82,21 @@ class RoommatesController extends Controller
     public function store(Request $request)
     {
         try {
+            // Enforce: Only verified students can create roommate listings
+            $user = Auth::user();
+            $isStudent = false;
+            if ($user) {
+                // Accept either legacy 'type' or newer 'user_status' fields for student check
+                $isStudent = ($user->type === 'student') || ($user->user_status === 'current_student');
+            }
+
+            if (!$user || !$user->is_verified || !$isStudent) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified students can post roommate requests.'
+                ], 403);
+            }
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',

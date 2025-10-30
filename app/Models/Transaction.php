@@ -11,13 +11,12 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        // 'reference',
         'user_id',
         'amount',
         'type',
         'status',
         'description',
-        'naration'
+        'reference',
     ];
 
     public function user()

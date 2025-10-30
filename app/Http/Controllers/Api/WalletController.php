@@ -547,14 +547,18 @@ class WalletController extends Controller
                 ], 400);
             }
 
+            $frontendUrl = env('FRONTEND_URL');
+            $callbackUrl = $frontendUrl ? rtrim($frontendUrl, '/') . '/paystack/callback' : url('/paystack/callback');
+
             $response = Http::withToken($secretKey)
                 ->post($paymentUrl . '/transaction/initialize', [
                     'email' => $request->email,
                     'amount' => $request->amount * 100, // Convert to kobo
-                    'callback_url' => url('/api/paystack/callback'),
+                    'callback_url' => $callbackUrl,
                     'metadata' => [
                         'user_id' => $request->user()?->id,
-                        'purpose' => 'wallet_funding'
+                        'purpose' => 'wallet_funding',
+                        'email' => $request->email,
                     ]
                 ]);
 
@@ -581,6 +585,116 @@ class WalletController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Payment initialization failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Verify Paystack transaction and credit wallet
+     */
+    public function verifyPaystackTransaction(Request $request)
+    {
+        $reference = $request->query('reference') ?? $request->input('reference');
+
+        if (!$reference) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing reference'
+            ], 422);
+        }
+
+        try {
+            $secretKey = config('services.paystack.secret_key');
+            $paymentUrl = rtrim((string) config('services.paystack.payment_url'), '/');
+
+            if (empty($secretKey)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paystack configuration missing.'
+                ], 400);
+            }
+
+            $response = Http::withToken($secretKey)
+                ->get($paymentUrl . "/transaction/verify/{$reference}");
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json('message') ?? 'Verification failed'
+                ], 400);
+            }
+
+            $data = $response->json('data');
+
+            if (!isset($data['status']) || $data['status'] !== 'success') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment not successful'
+                ], 400);
+            }
+
+            // Prevent duplicate processing
+            if (\App\Models\Transaction::where('reference', $reference)->exists()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment already processed'
+                ]);
+            }
+
+            $metadata = $data['metadata'] ?? [];
+            $userId = $metadata['user_id'] ?? null;
+            $email = $metadata['email'] ?? ($data['customer']['email'] ?? null);
+
+            $user = null;
+            if ($userId) {
+                $user = User::find($userId);
+            }
+            if (!$user && $email) {
+                $user = User::where('email', $email)->first();
+            }
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found for this transaction'
+                ], 404);
+            }
+
+            $amountNaira = (float) (($data['amount'] ?? 0) / 100);
+
+            DB::beginTransaction();
+
+            // Credit wallet
+            $user->increment('wallet_balance', $amountNaira);
+
+            // Record transaction
+            $transaction = \App\Models\Transaction::create([
+                'user_id' => $user->id,
+                'amount' => $amountNaira,
+                'type' => 'credit',
+                'status' => 'completed',
+                'description' => 'Wallet funding via Paystack',
+            ]);
+            // Ensure reference is saved even if not mass-assignable
+            $transaction->reference = $reference;
+            $transaction->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment verified and wallet credited',
+                'data' => [
+                    'new_balance' => $user->fresh()->wallet_balance,
+                    'transaction_id' => $transaction->id,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Paystack verify error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Verification error: ' . $e->getMessage()
             ], 500);
         }
     }
