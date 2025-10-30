@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\MarketplaceItem;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ServicesController extends Controller
@@ -24,7 +25,7 @@ class ServicesController extends Controller
                 $searchTerm = $request->search;
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('title', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%");
+                        ->orWhere('description', 'like', "%{$searchTerm}%");
                 });
             }
 
@@ -110,6 +111,15 @@ class ServicesController extends Controller
     public function store(Request $request)
     {
         try {
+            // Enforce: Only verified users can post services
+            $user = Auth::user();
+            if (!$user || !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can post services.'
+                ], 403);
+            }
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
@@ -131,7 +141,7 @@ class ServicesController extends Controller
             }
 
             $serviceData = [
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'title' => $request->title,
                 'description' => $request->description,
                 'price' => $request->price,
@@ -173,9 +183,18 @@ class ServicesController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Enforce: Only verified users can update their services
+            $user = Auth::user();
+            if (!$user || !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can update services.'
+                ], 403);
+            }
+
             $service = MarketplaceItem::where('id', $id)
                 ->where('category', 'services')
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->first();
 
             if (!$service) {
@@ -206,8 +225,13 @@ class ServicesController extends Controller
             }
 
             $updateData = $request->only([
-                'title', 'description', 'price', 'location', 
-                'contact', 'availability', 'experience'
+                'title',
+                'description',
+                'price',
+                'location',
+                'contact',
+                'availability',
+                'experience'
             ]);
 
             // Handle image uploads
@@ -241,9 +265,18 @@ class ServicesController extends Controller
     public function destroy($id)
     {
         try {
+            // Enforce: Only verified users can delete their services
+            $user = Auth::user();
+            if (!$user || !$user->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can delete services.'
+                ], 403);
+            }
+
             $service = MarketplaceItem::where('id', $id)
                 ->where('category', 'services')
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->first();
 
             if (!$service) {
@@ -274,7 +307,7 @@ class ServicesController extends Controller
     {
         try {
             $query = MarketplaceItem::where('category', 'services')
-                ->where('user_id', auth()->id())
+                ->where('user_id', Auth::id())
                 ->orderBy('created_at', 'desc');
 
             $services = $query->paginate(12);

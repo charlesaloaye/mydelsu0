@@ -4,22 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Transaction extends Model
+class Document extends Model
 {
-    /** @use HasFactory<\Database\Factories\TransactionsFactory> */
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'amount',
-        'type',
-        'status',
-        'description',
-        'reference',
+        'name',
+        'category',
+        'mime_type',
+        'file_size',
+        'file_path',
+        'file_name',
+        'uploaded_by',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

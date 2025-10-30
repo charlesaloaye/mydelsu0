@@ -234,4 +234,41 @@ class CourseSummariesController extends Controller
             'data' => $stats
         ]);
     }
+
+    /**
+     * Search course summaries via POST payload: { query, filters }
+     */
+    public function search(Request $request)
+    {
+        $queryBuilder = CourseSummary::with('user')
+            ->where('status', 'approved');
+
+        $search = $request->input('query');
+        $filters = (array) $request->input('filters', []);
+
+        if ($search) {
+            $queryBuilder->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('course_code', 'like', "%{$search}%")
+                    ->orWhere('course_title', 'like', "%{$search}%");
+            });
+        }
+
+        if (!empty($filters['type'])) {
+            $queryBuilder->where('type', $filters['type']);
+        }
+        if (!empty($filters['level'])) {
+            $queryBuilder->where('level', $filters['level']);
+        }
+        if (!empty($filters['department'])) {
+            $queryBuilder->where('department', $filters['department']);
+        }
+
+        $results = $queryBuilder->orderBy('created_at', 'desc')->paginate(20);
+
+        return response()->json([
+            'success' => true,
+            'data' => $results
+        ]);
+    }
 }

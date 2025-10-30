@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Models\MarketplaceItem;
 
 class UploadController extends Controller
 {
@@ -65,7 +66,7 @@ class UploadController extends Controller
             'success' => true,
             'message' => 'Past question uploaded successfully. It will be reviewed before being published.',
             'data' => [
-                'file_url' => Storage::url($path),
+                'file_url' => url(Storage::url($path)),
                 'upload_id' => 'PQ_' . time() . '_' . $user->id
             ]
         ]);
@@ -123,7 +124,7 @@ class UploadController extends Controller
             'success' => true,
             'message' => 'Project uploaded successfully. It will be reviewed before being published.',
             'data' => [
-                'file_url' => Storage::url($path),
+                'file_url' => url(Storage::url($path)),
                 'upload_id' => 'PROJ_' . time() . '_' . $user->id
             ]
         ]);
@@ -184,11 +185,38 @@ class UploadController extends Controller
             'status' => 'pending_review'
         ];
 
+        // Also create a marketplace entry so it appears under "My Hostels"
+        try {
+            $imageUrls = array_map(fn($path) => url(Storage::url($path)), $imagePaths);
+
+            // Extract a numeric price from a range string like "₦80,000 - ₦120,000"
+            $priceNumeric = 0;
+            if (!empty($request->price_range)) {
+                if (preg_match('/(\d[\d,\.]*)/', $request->price_range, $m)) {
+                    $priceNumeric = (float) str_replace([','], '', $m[1]);
+                }
+            }
+
+            MarketplaceItem::create([
+                'user_id' => $user->id,
+                'title' => $request->hostel_name,
+                'description' => $request->description,
+                'price' => $priceNumeric,
+                'category' => 'hostels',
+                'location' => $request->location,
+                'contact' => $request->contact_phone,
+                'status' => 'active',
+                'images' => $imageUrls,
+            ]);
+        } catch (\Throwable $e) {
+            // swallow marketplace sync errors to not block the upload
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Hostel information uploaded successfully. It will be reviewed before being published.',
             'data' => [
-                'image_urls' => array_map(fn($path) => Storage::url($path), $imagePaths),
+                'image_urls' => isset($imageUrls) ? $imageUrls : array_map(fn($path) => url(Storage::url($path)), $imagePaths),
                 'upload_id' => 'HOSTEL_' . time() . '_' . $user->id
             ]
         ]);

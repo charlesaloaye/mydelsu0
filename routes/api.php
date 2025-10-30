@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\DailyRewardController;
 use App\Http\Controllers\Api\CourseSummariesController;
 use App\Http\Controllers\Api\PastQuestionsController;
+use App\Http\Controllers\Api\DocumentController;
+use App\Models\Course;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +32,13 @@ use App\Http\Controllers\Api\PastQuestionsController;
 |
 */
 
+Route::get('/', function () {
+    return response()->json([
+        'message' => 'Welcome to myDelsu API',
+        'version' => '1.0.0'
+    ]);
+});
+
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -37,6 +46,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/data-plans', [WalletController::class, 'getDataPlans']);
 Route::post('/paystack/initialize', [WalletController::class, 'initializePaystackPayment']);
+Route::get('/paystack/verify', [WalletController::class, 'verifyPaystackTransaction']);
 
 // Public marketplace routes (viewing products)
 Route::get('/marketplace', [MarketplaceController::class, 'index']);
@@ -69,6 +79,38 @@ Route::get('/past-questions', [PastQuestionsController::class, 'index']);
 Route::get('/past-questions/{id}', [PastQuestionsController::class, 'show']);
 Route::get('/past-questions/{id}/download', [PastQuestionsController::class, 'download']);
 Route::get('/past-questions/stats', [PastQuestionsController::class, 'stats']);
+
+// Public courses route (for frontend getCourses)
+Route::get('/courses', function (Request $request) {
+    $query = Course::query();
+
+    if ($request->has('department')) {
+        $query->where('department', $request->department);
+    }
+    if ($request->has('level')) {
+        $query->where('level', $request->level);
+    }
+    if ($request->has('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('code', 'like', "%{$search}%")
+                ->orWhere('title', 'like', "%{$search}%");
+        });
+    }
+
+    $courses = $query->orderBy('code')->limit(200)->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $courses,
+    ]);
+});
+
+// Public referral info (for registration by referral code/number)
+Route::get('/referrals/info/{code}', [UserController::class, 'referrerInfo']);
+
+// Public course summaries search (POST payload: { query, filters })
+Route::post('/course-summaries/search', [CourseSummariesController::class, 'search']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -121,10 +163,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload/project', [UploadController::class, 'uploadProject']);
     Route::post('/upload/hostel', [UploadController::class, 'uploadHostel']);
 
+    // User documents and storage
+    Route::get('/storage/usage', [DocumentController::class, 'usage']);
+    Route::get('/documents', [DocumentController::class, 'index']);
+    Route::post('/documents', [DocumentController::class, 'store']);
+    Route::put('/documents/{id}/rename', [DocumentController::class, 'rename']);
+    Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+    Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
+
     // Referrals
     Route::get('/referrals', [UserController::class, 'referrals']);
     Route::get('/referrals/stats', [UserController::class, 'referralStats']);
     Route::post('/referrals/generate-link', [UserController::class, 'generateReferralLink']);
+    // Subscription status
+    Route::get('/user/subscription', [UserController::class, 'subscription']);
 
     // GPA Calculations
     Route::get('/gpa-calculations', [GpaController::class, 'index']);
@@ -138,6 +190,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/marketplace/categories', [MarketplaceController::class, 'categories']);
     Route::get('/marketplace/my-items', [MarketplaceController::class, 'myItems']);
     Route::post('/marketplace', [MarketplaceController::class, 'store']);
+    // Alias to support older frontend call
+    Route::post('/marketplace/upload', [MarketplaceController::class, 'store']);
     Route::put('/marketplace/{id}', [MarketplaceController::class, 'update']);
     Route::delete('/marketplace/{id}', [MarketplaceController::class, 'destroy']);
     Route::post('/marketplace/{id}/contact', [MarketplaceController::class, 'contactSeller']);

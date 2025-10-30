@@ -1,62 +1,178 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# myDelsu Quick Start Guide
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 🚀 Getting Started
 
-## About Laravel
+### 1. Start the Backend
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+cd backend
+php artisan serve
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Backend will be available at: `http://localhost:8000`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 2. Start the Frontend
 
-## Learning Laravel
+```bash
+cd frontend
+npm run dev
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Frontend will be available at: `http://localhost:3000`
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 3. Create Environment File
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Create `.env.local` in the frontend directory:
 
-## Laravel Sponsors
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🔑 Test Accounts
 
-### Premium Partners
+| Email            | Password    | Name           | Status          | Wallet  | Verification    |
+| ---------------- | ----------- | -------------- | --------------- | ------- | --------------- |
+| victor@test.com  | password123 | Victor Ijomah  | Current Student | ₦15,000 | ✅ Verified     |
+| sarah@test.com   | password123 | Sarah Johnson  | Current Student | ₦8,500  | ✅ Verified     |
+| michael@test.com | password123 | Michael Brown  | Aspirant        | ₦2,500  | ❌ Not Verified |
+| grace@test.com   | password123 | Grace Williams | Alumni          | ₦22,000 | ✅ Verified     |
+| david@test.com   | password123 | David Davis    | Current Student | ₦1,200  | ❌ Not Verified |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 🧪 Test Scenarios
 
-## Contributing
+### 1. New User Registration
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Go to `/auth/register`
+- Fill out the registration form
+- Test referral code: `VIC001`
+- Complete the registration process
 
-## Code of Conduct
+### 2. User Login
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Go to `/auth/login`
+- Use any test account above
+- Test both email and phone number login
 
-## Security Vulnerabilities
+### 3. Dashboard Testing
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Login with `victor@test.com`
+- Check wallet balance (₦15,000)
+- View notifications
+- Test daily reward claim
 
-## License
+### 4. Wallet Testing
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# mydelsu0
+- Go to `/dashboard/wallet`
+- View transaction history
+- Test different transaction types
+- Check wallet stats
+
+### 5. Profile Testing
+
+- Test with unverified user (`michael@test.com`)
+- Check verification status
+- Test profile completion percentage
+
+## 📊 Test Data Overview
+
+- **15 Users** with different statuses and verification levels
+- **224 Transactions** with realistic descriptions and amounts
+- **133 Notifications** with various types and read states
+- **Referral System** with working referral codes
+- **Wallet System** with different balance levels
+
+## 🔧 API Testing
+
+### Test API Endpoints
+
+```bash
+# Test login
+curl -X POST http://localhost:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email_or_phone":"victor@test.com","password":"password123"}'
+
+# Test dashboard
+curl -X GET http://localhost:8000/api/dashboard \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Test wallet
+curl -X GET http://localhost:8000/api/wallet \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **CORS Errors**
+
+   - Check if backend is running on port 8000
+   - Verify CORS configuration in `config/cors.php`
+
+2. **Database Issues**
+
+   - Run `php artisan migrate:fresh --seed` to reset data
+   - Check database connection in `.env`
+
+3. **Frontend Issues**
+
+   - Check if `.env.local` exists with correct API URL
+   - Clear browser cache and localStorage
+
+4. **API Errors**
+   - Check Laravel logs in `storage/logs/laravel.log`
+   - Verify all migrations are run
+
+## 📱 Features to Test
+
+### Authentication
+
+- [ ] User registration
+- [ ] User login (email/phone)
+- [ ] Password validation
+- [ ] Remember me functionality
+
+### Dashboard
+
+- [ ] Wallet balance display
+- [ ] Notification system
+- [ ] Daily reward claim
+- [ ] User profile info
+
+### Wallet
+
+- [ ] Transaction history
+- [ ] Balance display
+- [ ] Transaction filtering
+- [ ] Wallet stats
+
+### Profile
+
+- [ ] Profile completion
+- [ ] Verification status
+- [ ] Avatar upload
+- [ ] Profile updates
+
+### Referrals
+
+- [ ] Referral code generation
+- [ ] Referral tracking
+- [ ] Referral rewards
+
+## 🎯 Next Steps
+
+1. **Test all features** with different user accounts
+2. **Customize the UI** as needed
+3. **Add additional features** based on requirements
+4. **Deploy to production** when ready
+
+## 📞 Support
+
+If you encounter any issues:
+
+1. Check the logs in `backend/storage/logs/`
+2. Verify all environment variables are set
+3. Ensure both frontend and backend are running
+4. Check the API documentation in `backend/API_DOCUMENTATION.md`
+
+Happy testing! 🎉

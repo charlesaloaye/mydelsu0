@@ -572,4 +572,57 @@ class UserController extends Controller
             'data' => $uploads
         ]);
     }
+
+    /**
+     * Get user subscription status
+     */
+    public function subscription(Request $request)
+    {
+        $user = $request->user();
+
+        // For now, assume a simple free plan unless subscription fields are added later
+        $subscription = [
+            'plan' => 'free',
+            'status' => 'active',
+            'valid' => true,
+            'renews' => false,
+            'expires_at' => null,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $subscription,
+        ]);
+    }
+
+    /**
+     * Get referrer info by code or number
+     */
+    public function referrerInfo($code)
+    {
+        // Support both referral_code and whatsapp (used in legacy referral links)
+        $referrer = User::where('referral_code', $code)
+            ->orWhere('whatsapp', $code)
+            ->select('id', 'first_name', 'last_name', 'email', 'whatsapp', 'referral_code', 'is_verified')
+            ->first();
+
+        if (!$referrer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Referrer not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $referrer->id,
+                'name' => trim($referrer->first_name . ' ' . $referrer->last_name),
+                'email' => $referrer->email,
+                'whatsapp' => $referrer->whatsapp,
+                'referral_code' => $referrer->referral_code,
+                'is_verified' => (bool) $referrer->is_verified,
+            ],
+        ]);
+    }
 }

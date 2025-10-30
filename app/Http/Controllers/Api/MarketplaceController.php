@@ -110,6 +110,15 @@ class MarketplaceController extends Controller
     public function store(Request $request)
     {
         try {
+            // Enforce: Only verified users can post marketplace items
+            $authUser = Auth::user();
+            if (!$authUser || !$authUser->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can post products/services.'
+                ], 403);
+            }
+
             $validator = Validator::make($request->all(), [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string|max:1000',
@@ -175,6 +184,15 @@ class MarketplaceController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Enforce: Only verified users can update their marketplace items
+            $authUser = Auth::user();
+            if (!$authUser || !$authUser->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can update products/services.'
+                ], 403);
+            }
+
             $item = MarketplaceItem::where('user_id', Auth::id())->findOrFail($id);
 
             $validator = Validator::make($request->all(), [
@@ -242,6 +260,15 @@ class MarketplaceController extends Controller
     public function destroy($id)
     {
         try {
+            // Enforce: Only verified users can delete their marketplace items
+            $authUser = Auth::user();
+            if (!$authUser || !$authUser->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only verified users can delete products/services.'
+                ], 403);
+            }
+
             $item = MarketplaceItem::where('user_id', Auth::id())->findOrFail($id);
             $item->delete();
 
