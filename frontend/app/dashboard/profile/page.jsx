@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AuthGuard from "../../../components/AuthGuard";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { useAuth } from "../../../contexts/AuthContext";
 import apiClient from "../../../lib/api";
 
@@ -301,17 +301,12 @@ function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Navbar
-        variant="dashboard"
-        showNotifications={true}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onNotificationClick={() => setShowNotifications(!showNotifications)}
-        currentPath="/dashboard/profile"
-      />
-
+    <DashboardLayout
+      showNotifications={true}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      onNotificationClick={() => setShowNotifications(!showNotifications)}
+    >
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Page Header */}
@@ -991,7 +986,7 @@ function ProfilePage() {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
 

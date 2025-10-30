@@ -317,7 +317,7 @@ function ServicesPage() {
                         service.images && service.images.length > 0
                           ? service.images[0].startsWith("http")
                             ? service.images[0]
-                            : `http://localhost:8000${service.images[0]}`
+                            : `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, "") || "http://localhost:8000"}${service.images[0]}`
                           : "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
                       }
                       alt={service.title}

@@ -215,13 +215,13 @@ function LoginPage() {
                 />
                 <span className="text-sm text-gray-700">Remember me</span>
               </label>
-              <a
-                href="#"
+              <Link
+                href="/auth/forgot-password"
                 style={{ color: "#488bbf" }}
                 className="text-sm font-medium hover:underline"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Login Button */}
@@ -265,13 +265,13 @@ function LoginPage() {
             {/* Sign Up Link */}
             <p className="text-center text-sm text-gray-600">
               Don't have an account?{" "}
-              <a
-                href="#"
+              <Link
+                href="/auth/register"
                 style={{ color: "#488bbf" }}
                 className="hover:underline font-medium"
               >
                 Create one here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

@@ -4,10 +4,17 @@
 
 __turbopack_context__.s([
     "default",
-    ()=>__TURBOPACK__default__export__
+    ()=>__TURBOPACK__default__export__,
+    "getBackendBaseUrl",
+    ()=>getBackendBaseUrl
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 const API_BASE_URL = ("TURBOPACK compile-time value", "http://localhost:8000/api") || "http://localhost:8000/api";
+const getBackendBaseUrl = ()=>{
+    const apiUrl = API_BASE_URL;
+    // Remove /api suffix if present
+    return apiUrl.replace(/\/api$/, "");
+};
 class ApiClient {
     constructor(){
         this.baseURL = API_BASE_URL;
@@ -57,11 +64,18 @@ class ApiClient {
             }
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+                const error = new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+                // Attach parsed response for downstream error handling (e.g., validation errors)
+                error.response = data;
+                error.status = response.status;
+                throw error;
             }
             return data;
         } catch (error) {
-            console.error("API Error:", error);
+            // Avoid noisy console errors for expected validation failures
+            if (!(error && (error.status === 422 || error.status === 400))) {
+                console.error("API Error:", error);
+            }
             throw error;
         }
     }
@@ -127,6 +141,27 @@ class ApiClient {
     }
     async getUser() {
         return this.request("/user");
+    }
+    // Password reset
+    async forgotPassword(identifier) {
+        // Backend expects email; if a phone is passed, send as email_or_phone to be safe
+        const payload = {
+            email: identifier
+        };
+        try {
+            return await this.request("/forgot-password", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            // Fallback: try a more flexible payload if backend supports it
+            return await this.request("/forgot-password", {
+                method: "POST",
+                body: JSON.stringify({
+                    email_or_phone: identifier
+                })
+            });
+        }
     }
     // User profile endpoints
     async getProfile() {
@@ -243,6 +278,14 @@ class ApiClient {
         return this.request("/paystack/initialize", {
             method: "POST",
             body: JSON.stringify(paymentData)
+        });
+    }
+    async verifyPaystack(reference) {
+        const qs = new URLSearchParams({
+            reference
+        }).toString();
+        return this.request(`/paystack/verify?${qs}`, {
+            method: "GET"
         });
     }
     // Withdrawal
@@ -371,6 +414,41 @@ class ApiClient {
     }
     async getUserSubscription() {
         return this.request("/user/subscription");
+    }
+    // Storage and documents
+    async getStorageUsage() {
+        return this.request("/storage/usage");
+    }
+    async getDocuments(params = {}) {
+        const queryString = new URLSearchParams(params).toString();
+        return this.request(`/documents${queryString ? `?${queryString}` : ""}`);
+    }
+    async uploadDocument({ name, category, file }) {
+        const formData = new FormData();
+        formData.append("name", name);
+        if (category) formData.append("category", category);
+        formData.append("file", file);
+        return this.request("/documents", {
+            method: "POST",
+            body: formData
+        });
+    }
+    async renameDocument(id, name) {
+        return this.request(`/documents/${id}/rename`, {
+            method: "PUT",
+            body: JSON.stringify({
+                name
+            })
+        });
+    }
+    async deleteDocument(id) {
+        return this.request(`/documents/${id}`, {
+            method: "DELETE"
+        });
+    }
+    async downloadDocument(id) {
+        // Returns standard JSON; consumer can build a direct URL if needed
+        return this.request(`/documents/${id}/download`);
     }
     async uploadProduct(productData) {
         const formData = new FormData();

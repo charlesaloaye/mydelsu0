@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import AuthGuard from "../../../components/AuthGuard";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 import Link from "next/link";
 import apiClient from "../../../lib/api";
 
@@ -403,17 +403,12 @@ function CourseSummariesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Navbar
-        variant="dashboard"
-        showNotifications={false}
-        notifications={[]}
-        unreadCount={0}
-        onNotificationClick={() => {}}
-        currentPath="/dashboard/course-summaries"
-      />
-
+    <DashboardLayout
+      showNotifications={false}
+      notifications={[]}
+      unreadCount={0}
+      onNotificationClick={() => {}}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
@@ -886,10 +881,9 @@ function CourseSummariesPage() {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
-
 export default function ProtectedCourseSummariesPage() {
   return (
     <AuthGuard requireAuth={true}>

@@ -1,3 +1,0 @@
-module.exports=[36415,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(85254),e=a.i(26925),f=a.i(98474);function g({currentPath:a=""}){let{isAuthenticated:g}=(0,e.useAuth)(),[h,i]=(0,c.useState)([]),[j,k]=(0,c.useState)(0);return(0,c.useEffect)(()=>{if(!g)return;let a=async()=>{try{let[a,b]=await Promise.all([f.default.getNotifications(),f.default.getUnreadCount()]);a?.success?i(a.data.data||[]):i([]),b?.success?k(b.data.unread_count||0):k(0)}catch(a){i([]),k(0)}};a();let b=setInterval(a,6e4);return()=>clearInterval(b)},[g]),(0,b.jsx)(d.default,{variant:"dashboard",showNotifications:!0,notifications:h,unreadCount:j,onNotificationClick:()=>{},currentPath:a})}a.s(["default",()=>g])}];
-
-//# sourceMappingURL=components_DashboardHeader_jsx_d5c8f77c._.js.map

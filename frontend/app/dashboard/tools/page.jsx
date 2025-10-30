@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 import AuthGuard from "../../../components/AuthGuard";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
@@ -85,9 +85,12 @@ export default function ToolsPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar variant="dashboard" />
-
+      <DashboardLayout
+        showNotifications={false}
+        notifications={[]}
+        unreadCount={0}
+        onNotificationClick={() => {}}
+      >
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="text-center mb-12">
@@ -289,7 +292,7 @@ export default function ToolsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     </AuthGuard>
   );
 }

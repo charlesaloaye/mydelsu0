@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 
 export default function MarketplacePage() {
   const [showSearch, setShowSearch] = useState(false);
@@ -10,30 +10,35 @@ export default function MarketplacePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  // Banner ads data
-  const bannerAds = [
-    {
-      id: 1,
-      image:
-        "https://via.placeholder.com/800x300/4CAF50/ffffff?text=50%25+OFF+All+Laptops+-+Chat+Now!",
-      whatsappNumber: "2348012345678",
-      message: "Hi! I saw your 50% off laptops ad on myDelsu marketplace.",
-    },
-    {
-      id: 2,
-      image:
-        "https://via.placeholder.com/800x300/2196F3/ffffff?text=Fresh+Jollof+Rice+Daily+-+Order+Now!",
-      whatsappNumber: "2348087654321",
-      message: "Hi! I want to order jollof rice from your ad on myDelsu.",
-    },
-    {
-      id: 3,
-      image:
-        "https://via.placeholder.com/800x300/FF9800/ffffff?text=Professional+Photography+-+Book+Session",
-      whatsappNumber: "2348023456789",
-      message: "Hi! I want to book a photography session from your myDelsu ad.",
-    },
+  // Banner ads sourced from backend public/banners
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const BACKEND_BASE = API_BASE.replace(/\/api$/, "");
+  const bannerFiles = [
+    "2021-07-18_40_20-27-JulyLME GAS-2.jpg",
+    "2021-07-18_42_45-27-JulyTop games.jpg",
+    "2021-08-10_06_18-2-Augustbanner-id19_07_32-broker-1.jpg",
+    "banner-id00_35_30-8e9ux3zq761hxjd829b2t3xyff3x58lf.png",
+    "banner-id00_41_43-PLACE YOUR AD.jpg",
+    "banner-id09_44_23-DELSU (1).jpg",
+    "banner-id11_50_20-66DFBAE5-6471-4846-86DD-E4B3C9E63D66.jpeg",
+    "banner-id16_18_32-paypal.jpg",
+    "banner-id16_22_10-ELECTRICAL.jpg",
+    "banner-id16_49_00-LME1.jpg",
+    "banner-id18_14_34-GiftCArd.jpg",
+    "banner-id18_42_34-GiftCArd.jpg",
+    "banner-id22_38_13-LOGO BANNER.jpg",
+    "Get-Your-Electronic-Supplies-At-Home (1).jpg",
+    "Screenshot_20200512-090526.png",
+    "Screenshot_20200512-090543.png",
+    "Screenshot_20200512-090616.png",
   ];
+  const bannerAds = bannerFiles.map((file, idx) => ({
+    id: idx + 1,
+    image: `${BACKEND_BASE}/banners/${encodeURIComponent(file)}`,
+    whatsappNumber: "2348012345678",
+    message: "Hi! I saw your banner on myDelsu marketplace.",
+  }));
 
   // Categories
   const productCategories = [
@@ -263,17 +268,12 @@ export default function MarketplacePage() {
     activeTab === "products" ? recentProducts : recentServices;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <Navbar
-        variant="dashboard"
-        showNotifications={false}
-        notifications={[]}
-        unreadCount={0}
-        onNotificationClick={() => {}}
-        currentPath="/dashboard/marketplace"
-      />
-
+    <DashboardLayout
+      showNotifications={false}
+      notifications={[]}
+      unreadCount={0}
+      onNotificationClick={() => {}}
+    >
       {/* Banner Ads */}
       <div className="bg-white">
         <div className="relative">
@@ -523,6 +523,6 @@ export default function MarketplacePage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

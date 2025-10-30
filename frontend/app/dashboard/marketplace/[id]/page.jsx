@@ -245,7 +245,7 @@ function MarketplaceItemPage() {
                     item.images && item.images.length > 0
                       ? item.images[currentImageIndex].startsWith("http")
                         ? item.images[currentImageIndex]
-                        : `http://localhost:8000${item.images[currentImageIndex]}`
+                        : `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, "") || "http://localhost:8000"}${item.images[currentImageIndex]}`
                       : "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop"
                   }
                   alt={item.title}
@@ -331,7 +331,7 @@ function MarketplaceItemPage() {
                         src={
                           image.startsWith("http")
                             ? image
-                            : `http://localhost:8000${image}`
+                            : `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, "") || "http://localhost:8000"}${image}`
                         }
                         alt={`${item.title} ${index + 1}`}
                         className="w-full h-full object-cover"

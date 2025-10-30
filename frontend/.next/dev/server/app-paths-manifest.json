@@ -1,22 +1,3 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/auth/login/page": "app/auth/login/page.js",
-  "/dashboard/aggregate-checker/page": "app/dashboard/aggregate-checker/page.js",
-  "/dashboard/cgpa-calculator/page": "app/dashboard/cgpa-calculator/page.js",
-  "/dashboard/course-summaries/page": "app/dashboard/course-summaries/page.js",
-  "/dashboard/gpa-calculator/page": "app/dashboard/gpa-calculator/page.js",
-  "/dashboard/hostels/page": "app/dashboard/hostels/page.js",
-  "/dashboard/marketplace/page": "app/dashboard/marketplace/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/past-questions/page": "app/dashboard/past-questions/page.js",
-  "/dashboard/profile/page": "app/dashboard/profile/page.js",
-  "/dashboard/roommates/page": "app/dashboard/roommates/page.js",
-  "/dashboard/services/page": "app/dashboard/services/page.js",
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
-  "/dashboard/tools/page": "app/dashboard/tools/page.js",
-  "/dashboard/upload-hostel/page": "app/dashboard/upload-hostel/page.js",
-  "/dashboard/upload-project/page": "app/dashboard/upload-project/page.js",
-  "/dashboard/wallet/page": "app/dashboard/wallet/page.js",
-  "/page": "app/page.js",
-  "/tools/page": "app/tools/page.js"
+  "/auth/forgot-password/page": "app/auth/forgot-password/page.js"
 }

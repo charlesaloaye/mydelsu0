@@ -288,7 +288,7 @@ function HostelsPage() {
                           hostel.images && hostel.images.length > 0
                             ? hostel.images[0].startsWith("http")
                               ? hostel.images[0]
-                              : `http://localhost:8000${hostel.images[0]}`
+                              : `${process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, "") || "http://localhost:8000"}${hostel.images[0]}`
                             : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop"
                         }
                         alt={hostel.title}

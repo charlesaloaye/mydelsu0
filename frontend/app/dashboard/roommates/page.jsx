@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import apiClient from "../../../lib/api";
 import { useAuth } from "../../../contexts/AuthContext";
+import DashboardLayout from "../../../components/DashboardLayout";
+import AuthGuard from "../../../components/AuthGuard";
 
 export default function FindRoommatePage() {
   const [showMenu, setShowMenu] = useState(false);
@@ -210,129 +212,12 @@ export default function FindRoommatePage() {
   const totalCost = wantsBoost ? 700 : 500;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      <header
-        style={{ backgroundColor: "#488bbf" }}
-        className="shadow-sm sticky top-0 z-50"
-      >
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl font-semibold text-white">my</span>
-            <span
-              style={{ backgroundColor: "#ffffff", color: "#488bbf" }}
-              className="px-2 py-1 rounded font-bold text-xl"
-            >
-              DELSU
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 hover:bg-white/10 rounded-full transition relative"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900">
-                      Notifications
-                    </h3>
-                  </div>
-                  {notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`px-4 py-3 hover:bg-gray-50 ${
-                        notif.unread ? "bg-blue-50" : ""
-                      }`}
-                    >
-                      <p className="text-sm text-gray-800">{notif.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-2 hover:bg-white/10 rounded-full transition"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-
-              {showMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50">
-                  <a
-                    href="#"
-                    className="block px-4 py-3 text-gray-700 hover:bg-gray-100"
-                  >
-                    Dashboard
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-3 text-gray-700 hover:bg-gray-100"
-                  >
-                    My Listings
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-3 text-gray-700 hover:bg-gray-100"
-                  >
-                    Browse Roommates
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {(showMenu || showNotifications) && (
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => {
-              setShowMenu(false);
-              setShowNotifications(false);
-            }}
-          ></div>
-        )}
-      </header>
-
+    <DashboardLayout
+      showNotifications={true}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      onNotificationClick={() => setShowNotifications(!showNotifications)}
+    >
       <div className="container mx-auto px-4 py-6 max-w-5xl">
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -1406,62 +1291,62 @@ export default function FindRoommatePage() {
             </p>
           </>
         )}
-      </div>
 
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-4 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Listing Submitted! 🎉
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Your roommate listing is under admin review and will be live
-              within 24 hours. You'll be notified once approved.
-            </p>
-            {wantsBoost && (
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-purple-700">
-                  🚀 Your listing will be pinned at the top for 7 days after
-                  approval!
-                </p>
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               </div>
-            )}
-            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-6">
-              <p className="text-sm font-semibold text-yellow-900 mb-2">
-                🔒 Safety Reminders:
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Listing Submitted! 🎉
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Your roommate listing is under admin review and will be live
+                within 24 hours. You'll be notified once approved.
               </p>
-              <ul className="text-xs text-yellow-800 text-left space-y-1">
-                <li>• Always meet in public places</li>
-                <li>• Tell someone where you're going</li>
-                <li>• Video call before meeting in person</li>
-                <li>• Never send money before meeting</li>
-                <li>• Trust your instincts!</li>
-              </ul>
+              {wantsBoost && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-purple-700">
+                    🚀 Your listing will be pinned at the top for 7 days after
+                    approval!
+                  </p>
+                </div>
+              )}
+              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-6">
+                <p className="text-sm font-semibold text-yellow-900 mb-2">
+                  🔒 Safety Reminders:
+                </p>
+                <ul className="text-xs text-yellow-800 text-left space-y-1">
+                  <li>• Always meet in public places</li>
+                  <li>• Tell someone where you're going</li>
+                  <li>• Video call before meeting in person</li>
+                  <li>• Never send money before meeting</li>
+                  <li>• Trust your instincts!</li>
+                </ul>
+              </div>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-3 rounded-lg font-semibold text-white transition"
+                style={{ backgroundColor: "#488bbf" }}
+              >
+                Done
+              </button>
             </div>
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="w-full py-3 rounded-lg font-semibold text-white transition"
-              style={{ backgroundColor: "#488bbf" }}
-            >
-              Done
-            </button>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

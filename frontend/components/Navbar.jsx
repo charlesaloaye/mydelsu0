@@ -10,6 +10,7 @@ const Navbar = ({
   unreadCount = 0,
   onNotificationClick = () => {},
   currentPath = "",
+  onMenuToggle = () => {}, // New prop for sidebar toggle
 }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -266,21 +267,73 @@ const Navbar = ({
       className="shadow-sm sticky top-0 z-50"
     >
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href={isAuthenticated ? "/dashboard" : "/"}
-          className="flex items-center space-x-2"
-        >
-          <span className="text-xl font-semibold text-white">my</span>
-          <span
-            style={{ backgroundColor: "#ffffff", color: "#488bbf" }}
-            className="px-2 py-1 rounded font-bold text-xl"
+        <div className="flex items-center space-x-3">
+          {/* Sidebar Toggle Button - Dashboard Only */}
+          {variant === "dashboard" && (
+            <button
+              onClick={onMenuToggle}
+              className="p-2 hover:bg-white/10 rounded-full transition lg:hidden"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          )}
+
+          {/* Logo */}
+          <Link
+            href={isAuthenticated ? "/dashboard" : "/"}
+            className={`flex items-center space-x-2 ${
+              variant === "dashboard" ? "lg:hidden" : ""
+            }`}
           >
-            DELSU
-          </span>
-        </Link>
+            <span className="text-xl font-semibold text-white">my</span>
+            <span
+              style={{ backgroundColor: "#ffffff", color: "#488bbf" }}
+              className="px-2 py-1 rounded font-bold text-xl"
+            >
+              DELSU
+            </span>
+          </Link>
+        </div>
 
         <div className="flex items-center space-x-3">
+          {/* Verification badge */}
+          {isAuthenticated && (
+            <span
+              className={`hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                user?.is_verified
+                  ? "bg-green-100 text-green-700"
+                  : user?.verification_status === "pending"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+              title={
+                user?.is_verified
+                  ? "Verified user"
+                  : user?.verification_status === "pending"
+                  ? "Verification pending"
+                  : "Not verified"
+              }
+            >
+              {user?.is_verified
+                ? "Verified"
+                : user?.verification_status === "pending"
+                ? "Pending"
+                : "Not verified"}
+            </span>
+          )}
           {/* Notifications - only show for dashboard variant */}
           {variant === "dashboard" && showNotifications && (
             <div className="relative" ref={notificationRef}>
@@ -345,84 +398,62 @@ const Navbar = ({
             </div>
           )}
 
-          {/* Hamburger Menu */}
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 hover:bg-white/10 rounded-full transition"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {/* Hamburger Menu - Only for non-dashboard variants */}
+          {variant !== "dashboard" && (
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 hover:bg-white/10 rounded-full transition"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
 
-            {showMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50 animate-[fadeIn_0.2s_ease-in]">
-                {navigationItems.map((item, index) => (
-                  <Link
-                    key={index}
-                    href={item.href}
-                    className={`block px-4 py-3 transition ${
-                      item.current
-                        ? "bg-blue-100 border-l-4 text-blue-900 font-semibold"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }`}
-                    style={item.current ? { borderColor: "#488bbf" } : {}}
-                    onClick={() => setShowMenu(false)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <svg
-                        className="w-5 h-5"
-                        style={{ color: item.current ? "#1e40af" : "#488bbf" }}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        {getIcon(item.icon)}
-                      </svg>
-                      <span className="font-medium">{item.label}</span>
-                    </div>
-                  </Link>
-                ))}
-
-                {/* Logout button for dashboard */}
-                {variant === "dashboard" && isAuthenticated && (
-                  <>
-                    <div className="border-t border-gray-200 my-2"></div>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition"
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50 animate-[fadeIn_0.2s_ease-in]">
+                  {navigationItems.map((item, index) => (
+                    <Link
+                      key={index}
+                      href={item.href}
+                      className={`block px-4 py-3 transition ${
+                        item.current
+                          ? "bg-blue-100 border-l-4 text-blue-900 font-semibold"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                      style={item.current ? { borderColor: "#488bbf" } : {}}
+                      onClick={() => setShowMenu(false)}
                     >
                       <div className="flex items-center space-x-3">
                         <svg
                           className="w-5 h-5"
+                          style={{
+                            color: item.current ? "#1e40af" : "#488bbf",
+                          }}
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
-                          <path
-                            fillRule="evenodd"
-                            d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
-                            clipRule="evenodd"
-                          />
+                          {getIcon(item.icon)}
                         </svg>
-                        <span className="font-medium">Logout</span>
+                        <span className="font-medium">{item.label}</span>
                       </div>
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Overlay for mobile menu */}

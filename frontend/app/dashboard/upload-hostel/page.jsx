@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import apiClient from "../../../lib/api";
 import AuthGuard from "../../../components/AuthGuard";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 import { useToast } from "../../../contexts/ToastContext";
 
 function UploadHostelPage() {
@@ -177,16 +177,12 @@ function UploadHostelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      <Navbar
-        variant="dashboard"
-        showNotifications={true}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onNotificationClick={() => {}}
-        currentPath="/dashboard/upload-hostel"
-      />
-
+    <DashboardLayout
+      showNotifications={true}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      onNotificationClick={() => {}}
+    >
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         <div className="mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
@@ -841,78 +837,78 @@ function UploadHostelPage() {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-lg w-full text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-4 flex items-center justify-center">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Submission Successful!
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {successMessage ||
-                "Your hostel information has been submitted. We'll verify the contact number and review within 24-48 hours."}
-            </p>
-
-            {/* Display uploaded image URLs */}
-            {uploadedImageUrls.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                  Uploaded Images:
-                </h4>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                  {uploadedImageUrls.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url}
-                        alt={`Uploaded image ${index + 1}`}
-                        className="w-full h-20 object-cover rounded-lg border"
-                        onError={(e) => {
-                          e.target.src = "/api/placeholder/100/80";
-                        }}
-                      />
-                      <div className="absolute bottom-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
-                        {index + 1}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  {uploadedImageUrls.length} image
-                  {uploadedImageUrls.length !== 1 ? "s" : ""} uploaded
-                  successfully
-                </p>
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-lg w-full text-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
               </div>
-            )}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Submission Successful!
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {successMessage ||
+                  "Your hostel information has been submitted. We'll verify the contact number and review within 24-48 hours."}
+              </p>
 
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="w-full py-3 rounded-lg font-semibold text-white transition"
-              style={{ backgroundColor: "#488bbf" }}
-            >
-              Got it!
-            </button>
+              {/* Display uploaded image URLs */}
+              {uploadedImageUrls.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                    Uploaded Images:
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                    {uploadedImageUrls.map((url, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={url}
+                          alt={`Uploaded image ${index + 1}`}
+                          className="w-full h-20 object-cover rounded-lg border"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null; // prevent loop
+                            e.currentTarget.src = "/next.svg"; // existing static fallback
+                          }}
+                        />
+                        <div className="absolute bottom-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {uploadedImageUrls.length} image
+                    {uploadedImageUrls.length !== 1 ? "s" : ""} uploaded
+                    successfully
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full py-3 rounded-lg font-semibold text-white transition"
+                style={{ backgroundColor: "#488bbf" }}
+              >
+                Got it!
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }
-
 export default function ProtectedUploadHostelPage() {
   return (
     <AuthGuard requireAuth={true}>

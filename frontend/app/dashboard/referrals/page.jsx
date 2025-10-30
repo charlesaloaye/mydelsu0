@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import AuthGuard from "../../../components/AuthGuard";
 import apiClient from "../../../lib/api";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 import Link from "next/link";
 
 function ReferralsPage() {
@@ -149,17 +149,12 @@ function ReferralsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      {/* Header */}
-      <Navbar
-        variant="dashboard"
-        showNotifications={true}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onNotificationClick={() => setShowNotifications(!showNotifications)}
-        currentPath="/dashboard/referrals"
-      />
-
+    <DashboardLayout
+      showNotifications={true}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      onNotificationClick={() => setShowNotifications(!showNotifications)}
+    >
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Page Title */}
@@ -445,7 +440,7 @@ function ReferralsPage() {
           }
         }
       `}</style>
-    </div>
+    </DashboardLayout>
   );
 }
 

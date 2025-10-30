@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -14,7 +14,10 @@
 /coverage
 
 # next.js
-/.next/
+frontend/.next/
+frontend/out/
+frontend/.next/
+.next/
 /out/
 
 # production
@@ -32,10 +35,34 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.env.local
+.env.production
+.env.development
 
 # vercel
 .vercel
+frontend/.vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Laravel / PHP
+backend/vendor/
+backend/storage/*.key
+backend/storage/logs/*
+!backend/storage/logs/.gitignore
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
+backend/.env
+backend/.env.backup
+backend/.phpunit.result.cache
+backend/database/*.sqlite
+backend/database/*.sqlite-journal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

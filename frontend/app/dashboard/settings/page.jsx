@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import AuthGuard from "../../../components/AuthGuard";
-import Navbar from "../../../components/Navbar";
+import DashboardLayout from "../../../components/DashboardLayout";
 import apiClient from "../../../lib/api";
 import { useToast } from "../../../contexts/ToastContext";
 
@@ -287,17 +287,12 @@ function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      {/* Header */}
-      <Navbar
-        variant="dashboard"
-        showNotifications={true}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onNotificationClick={() => setShowNotifications(!showNotifications)}
-        currentPath="/dashboard/settings"
-      />
-
+    <DashboardLayout
+      showNotifications={true}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      onNotificationClick={() => setShowNotifications(!showNotifications)}
+    >
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* Page Title */}
@@ -1268,10 +1263,9 @@ function SettingsPage() {
           }
         }
       `}</style>
-    </div>
+    </DashboardLayout>
   );
 }
-
 export default function ProtectedSettingsPage() {
   return (
     <AuthGuard requireAuth={true}>

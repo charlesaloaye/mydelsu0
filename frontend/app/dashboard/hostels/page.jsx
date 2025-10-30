@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AuthGuard from "../../../components/AuthGuard";
+import DashboardLayout from "../../../components/DashboardLayout";
 
 function HostelsMarketplacePage() {
   const [showSearch, setShowSearch] = useState(false);
@@ -170,83 +171,20 @@ function HostelsMarketplacePage() {
     );
   };
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % bannerAds.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <header
-        style={{ backgroundColor: "#488bbf" }}
-        className="shadow-sm sticky top-0 z-50"
-      >
-        <div className="container mx-auto px-4 py-4">
-          {!showSearch ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-semibold text-white">my</span>
-                <span
-                  style={{ backgroundColor: "#ffffff", color: "#488bbf" }}
-                  className="px-2 py-1 rounded font-bold text-xl"
-                >
-                  DELSU
-                </span>
-              </div>
-
-              <button
-                onClick={() => setShowSearch(true)}
-                className="p-2 hover:bg-white/10 rounded-full transition"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowSearch(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search hostels, accommodation..."
-                  className="w-full px-4 py-2 rounded-lg focus:outline-none"
-                  autoFocus
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
+    <DashboardLayout
+      showNotifications={false}
+      notifications={[]}
+      unreadCount={0}
+      onNotificationClick={() => {}}
+    >
       {/* Banner Ads */}
       <div className="bg-white">
         <div className="relative">
@@ -466,10 +404,9 @@ function HostelsMarketplacePage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
-
 export default function PublicHostelsPage() {
   return (
     <AuthGuard requireAuth={false}>

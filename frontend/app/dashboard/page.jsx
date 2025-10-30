@@ -4,15 +4,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import apiClient from "../../lib/api";
 import Link from "next/link";
 import AuthGuard from "../../components/AuthGuard";
-import Navbar from "../../components/Navbar";
+import DashboardLayout from "../../components/DashboardLayout";
 import AnnouncementCard from "../../components/AnnouncementCard";
-import DashboardMenu from "../../components/DashboardMenu";
 import { useToast } from "../../contexts/ToastContext";
 
 function Dashboard() {
   const { user, isAuthenticated, logout } = useAuth();
   const { showSuccess, showError } = useToast();
-  const [showMenu, setShowMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAdPopup, setShowAdPopup] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
@@ -187,22 +185,23 @@ function Dashboard() {
         loadDailyRewardData();
       }
     } catch (error) {
-      console.error("Error claiming daily reward:", error);
+      const message = String(error?.message || "Failed to claim daily reward.");
+      if (message.toLowerCase().includes("already claimed")) {
+        // Soft-notify instead of throwing console errors
+        showError("You have already claimed your daily reward today.");
+      } else {
+        showError(message);
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      {/* Header */}
-      <Navbar
-        variant="dashboard"
-        showNotifications={true}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        onNotificationClick={() => setShowNotifications(!showNotifications)}
-        currentPath="/dashboard"
-      />
-
+    <DashboardLayout
+      showNotifications={true}
+      notifications={notifications}
+      unreadCount={unreadCount}
+      onNotificationClick={() => setShowNotifications(!showNotifications)}
+    >
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Welcome Section */}
@@ -997,7 +996,7 @@ function Dashboard() {
           }
         }
       `}</style>
-    </div>
+    </DashboardLayout>
   );
 }
 

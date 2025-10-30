@@ -29,6 +29,20 @@ function ServicesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
 
+  // Banners from backend public/banners
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const BACKEND_BASE = API_BASE.replace(/\/api$/, "");
+  const bannerFiles = [
+    "2021-07-18_40_20-27-JulyLME GAS-2.jpg",
+    "2021-07-18_42_45-27-JulyTop games.jpg",
+    "banner-id16_22_10-ELECTRICAL.jpg",
+    "banner-id22_38_13-LOGO BANNER.jpg",
+  ];
+  const serviceBanners = bannerFiles.map(
+    (f) => `${BACKEND_BASE}/banners/${encodeURIComponent(f)}`
+  );
+
   // Create service form state
   const [createForm, setCreateForm] = useState({
     title: "",
@@ -349,6 +363,17 @@ function ServicesPage() {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <DashboardHeader currentPath="/services" />
+
+        {/* Top Banner */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="rounded-xl overflow-hidden border border-gray-200">
+            <img
+              src={serviceBanners[0]}
+              alt="Services banner"
+              className="w-full h-40 object-cover"
+            />
+          </div>
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Header */}
