@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -40,7 +41,11 @@ return new class extends Migration
 
             // Attempt to add unique index; ignore if it already exists (SQLite-safe)
             try {
-                $table->unique(['user_id', 'reward_date']);
+                // $table->unique(['user_id', 'reward_date']);
+                // Add unique index only if it doesn't exist
+                if (!DB::select("SHOW INDEX FROM daily_rewards WHERE Key_name = 'daily_rewards_user_id_reward_date_unique'")) {
+                    $table->unique(['user_id', 'reward_date']);
+                }
             } catch (\Throwable $e) {
                 // Index may already exist; ignore for idempotency
             }
