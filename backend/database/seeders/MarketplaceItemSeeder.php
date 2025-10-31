@@ -382,19 +382,112 @@ class MarketplaceItemSeeder extends Seeder
             ]
         ];
 
+        // Get user with ID 10 (from token: 10|S30FTBcSadaaiZimlPEZiFririzP3Cbd3TSeYIXVfbf7eac9)
+        $testUser = User::find(10);
+
+        if (!$testUser) {
+            $this->command->error('❌ User with ID 10 not found. Creating items for first verified user instead.');
+            $testUser = $users->where('is_verified', true)->first() ?? $users->first();
+        } else {
+            $this->command->info('✅ Found user ID 10: ' . $testUser->email . ' - Assigning all test items to this user');
+        }
+
+        // Define statuses to test all actions (only valid DB statuses: active, inactive, sold)
+        $statuses = ['active', 'active', 'active', 'active', 'sold', 'sold', 'inactive', 'inactive'];
+
+        $index = 0;
         foreach ($sampleItems as $itemData) {
-            MarketplaceItem::create([
-                'user_id' => $users->random()->id,
+            // Cycle through different statuses
+            $status = $statuses[$index % count($statuses)];
+
+            // Assign all items to test user (ID 10)
+            $userId = $testUser->id;
+
+            $item = MarketplaceItem::create([
+                'user_id' => $userId,
                 'title' => $itemData['title'],
                 'description' => $itemData['description'],
                 'price' => $itemData['price'],
                 'category' => $itemData['category'],
                 'location' => $itemData['location'],
                 'contact' => $itemData['contact'],
-                'status' => 'active',
+                'status' => $status,
                 'images' => $itemData['images'],
                 'created_at' => now()->subDays(rand(1, 30)), // Random creation date within last 30 days
             ]);
+
+            // For sold items, add sold_at timestamp (if the field exists)
+            if ($status === 'sold') {
+                $item->update([
+                    'updated_at' => now()->subDays(rand(1, 15)),
+                ]);
+            }
+
+            $index++;
         }
+
+        // Create a few extra test items for the test user with specific statuses for testing
+        $extraTestItems = [
+            [
+                'title' => '[TEST] Active Product - For Edit/Boost',
+                'description' => 'This is a test active product. You can test Edit, Boost, Mark as Sold, and Delete actions on this item.',
+                'price' => 50000,
+                'category' => 'for-sale',
+                'location' => 'Campus - Test Location',
+                'contact' => $testUser->phone ?? '08012345678',
+                'status' => 'active',
+                'images' => ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'],
+            ],
+            [
+                'title' => '[TEST] Another Active Product - For Boost Test',
+                'description' => 'This is another test active product with good price for boosting. Test the Boost feature (requires wallet balance).',
+                'price' => 75000,
+                'category' => 'for-sale',
+                'location' => 'Campus - Test Location',
+                'contact' => $testUser->phone ?? '08012345678',
+                'status' => 'active',
+                'images' => ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'],
+            ],
+            [
+                'title' => '[TEST] Sold Product - For Repost/Delete',
+                'description' => 'This is a test sold product. You can test Repost and Delete actions on this item.',
+                'price' => 40000,
+                'category' => 'for-sale',
+                'location' => 'Campus - Test Location',
+                'contact' => $testUser->phone ?? '08012345678',
+                'status' => 'sold',
+                'images' => ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'],
+            ],
+            [
+                'title' => '[TEST] Inactive Product - For Repost/Edit/Delete',
+                'description' => 'This is a test inactive product. You can test Repost, Edit, and Delete actions on this item.',
+                'price' => 35000,
+                'category' => 'for-sale',
+                'location' => 'Campus - Test Location',
+                'contact' => $testUser->phone ?? '08012345678',
+                'status' => 'inactive',
+                'images' => ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop'],
+            ],
+        ];
+
+        foreach ($extraTestItems as $extraItem) {
+            MarketplaceItem::create([
+                'user_id' => $testUser->id,
+                'title' => $extraItem['title'],
+                'description' => $extraItem['description'],
+                'price' => $extraItem['price'],
+                'category' => $extraItem['category'],
+                'location' => $extraItem['location'],
+                'contact' => $extraItem['contact'],
+                'status' => $extraItem['status'],
+                'images' => $extraItem['images'],
+                'created_at' => now()->subDays(rand(1, 7)),
+            ]);
+        }
+
+        $this->command->info('✅ Created ' . count($sampleItems) . ' marketplace items with various statuses');
+        $this->command->info('✅ Created ' . count($extraTestItems) . ' test items for testing actions');
+        $this->command->info('📝 Test user ID: ' . $testUser->id . ' (' . $testUser->email . ')');
+        $this->command->info('💡 Login as the test user to see all test items in "My Products" page');
     }
 }

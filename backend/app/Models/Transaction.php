@@ -17,6 +17,9 @@ class Transaction extends Model
         'status',
         'description',
         'reference',
+        'payment_method',
+        'metadata',
+        'narration',
     ];
 
     public function user()

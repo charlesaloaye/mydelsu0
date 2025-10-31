@@ -225,4 +225,56 @@ class PastQuestionsController extends Controller
             'data' => $stats
         ]);
     }
+
+    /**
+     * Get past questions for the authenticated user
+     */
+    public function myPastQuestions(Request $request)
+    {
+        try {
+            // Ensure we only return past questions for the authenticated user
+            $userId = Auth::id();
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated',
+                ], 401);
+            }
+
+            $query = PastQuestion::where('user_id', $userId)
+                ->orderBy('created_at', 'desc');
+
+            // Filter by status
+            if ($request->has('status')) {
+                $query->where('status', $request->input('status'));
+            }
+
+            // Search
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('course_code', 'like', "%{$search}%")
+                        ->orWhere('course_title', 'like', "%{$search}%");
+                });
+            }
+
+            $pastQuestions = $query->paginate($request->input('per_page', 20));
+
+            return response()->json([
+                'success' => true,
+                'data' => $pastQuestions->items(),
+                'pagination' => [
+                    'current_page' => $pastQuestions->currentPage(),
+                    'last_page' => $pastQuestions->lastPage(),
+                    'per_page' => $pastQuestions->perPage(),
+                    'total' => $pastQuestions->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load past questions: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

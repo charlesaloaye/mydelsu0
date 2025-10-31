@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Models\MarketplaceItem;
+use App\Models\PastQuestion;
+use App\Models\Solution;
 
 class UploadController extends Controller
 {
@@ -42,31 +44,30 @@ class UploadController extends Controller
         $filename = time() . '_' . $file->getClientOriginalName();
         $path = $file->storeAs('past_questions', $filename, 'public');
 
-        // Create upload record
-        $upload = [
+        // Save to database using PastQuestion model
+        $pastQuestion = PastQuestion::create([
             'user_id' => $user->id,
-            'type' => 'past_question',
             'course_code' => $request->course_code,
             'course_title' => $request->course_title,
             'level' => $request->level,
             'semester' => $request->semester,
             'session' => $request->session,
+            'department' => $request->department ?? null,
+            'description' => $request->description ?? null,
             'file_path' => $path,
             'file_name' => $filename,
             'file_size' => $file->getSize(),
-            'description' => $request->description,
+            'file_type' => $file->getMimeType(),
             'price' => $request->price ?? 0,
-            'status' => 'pending_review'
-        ];
-
-        // Save to database (you'll need to create the appropriate model/table)
-        // $pastQuestion = PastQuestion::create($upload);
+            'status' => 'pending' // PastQuestion model uses 'pending', not 'pending_review'
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Past question uploaded successfully. It will be reviewed before being published.',
             'data' => [
-                'file_url' => url(Storage::url($path)),
+                'id' => $pastQuestion->id,
+                'file_url' => Storage::url($path),
                 'upload_id' => 'PQ_' . time() . '_' . $user->id
             ]
         ]);
@@ -258,6 +259,66 @@ class UploadController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Upload deleted successfully'
+        ]);
+    }
+
+    /**
+     * Upload solution
+     */
+    public function uploadSolution(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'past_question_id' => 'nullable|exists:past_questions,id',
+            'course_code' => 'required|string|max:10',
+            'course_title' => 'required|string|max:255',
+            'level' => 'required|in:100,200,300,400,500',
+            'semester' => 'required|in:1,2',
+            'session' => 'required|string|max:10',
+            'file' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB max
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        // Store file
+        $file = $request->file('file');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $path = $file->storeAs('solutions', $filename, 'public');
+
+        // Save to database using Solution model
+        $solution = Solution::create([
+            'user_id' => $user->id,
+            'past_question_id' => $request->past_question_id ?? null,
+            'course_code' => $request->course_code,
+            'course_title' => $request->course_title,
+            'level' => $request->level,
+            'semester' => $request->semester,
+            'session' => $request->session,
+            'department' => $request->department ?? null,
+            'description' => $request->description ?? null,
+            'file_path' => $path,
+            'file_name' => $filename,
+            'file_size' => $file->getSize(),
+            'file_type' => $file->getClientMimeType(),
+            'status' => 'pending'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Solution uploaded successfully. It will be reviewed before being published.',
+            'data' => [
+                'id' => $solution->id,
+                'file_url' => Storage::url($path),
+                'upload_id' => 'SOL_' . time() . '_' . $user->id
+            ]
         ]);
     }
 

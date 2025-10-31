@@ -212,6 +212,7 @@ class ServicesController extends Controller
                 'contact' => 'sometimes|required|string|max:255',
                 'availability' => 'nullable|string|max:255',
                 'experience' => 'nullable|string|max:255',
+                'status' => 'sometimes|in:active,inactive,sold',
                 'images' => 'nullable|array|max:5',
                 'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             ]);
@@ -231,7 +232,8 @@ class ServicesController extends Controller
                 'location',
                 'contact',
                 'availability',
-                'experience'
+                'experience',
+                'status'
             ]);
 
             // Handle image uploads

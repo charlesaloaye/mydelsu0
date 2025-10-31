@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\DailyRewardController;
 use App\Http\Controllers\Api\CourseSummariesController;
 use App\Http\Controllers\Api\PastQuestionsController;
+use App\Http\Controllers\Api\SolutionsController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Models\Course;
 
@@ -58,10 +59,14 @@ Route::get('/services/{id}', [ServicesController::class, 'show']);
 
 // Public events routes (viewing events)
 Route::get('/events', [EventsController::class, 'index']);
+// Protected manage route - must be before /events/{id} to prevent route conflicts
+Route::middleware('auth:sanctum')->get('/events/manage', [EventsController::class, 'myEvents']);
 Route::get('/events/{id}', [EventsController::class, 'show']);
 
 // Public hostels routes (viewing hostels)
 Route::get('/hostels', [HostelsController::class, 'index']);
+// Protected manage route - must be defined before /hostels/{id} to prevent route conflict
+Route::middleware('auth:sanctum')->get('/hostels/manage', [HostelsController::class, 'myHostels']);
 Route::get('/hostels/{id}', [HostelsController::class, 'show']);
 
 // Public roommates routes (viewing roommate listings)
@@ -76,9 +81,18 @@ Route::get('/course-summaries/stats', [CourseSummariesController::class, 'stats'
 
 // Public past questions routes (viewing past questions)
 Route::get('/past-questions', [PastQuestionsController::class, 'index']);
+// Protected manage route - must be before /past-questions/{id} to prevent route conflicts
+Route::middleware('auth:sanctum')->get('/past-questions/manage', [PastQuestionsController::class, 'myPastQuestions']);
 Route::get('/past-questions/{id}', [PastQuestionsController::class, 'show']);
 Route::get('/past-questions/{id}/download', [PastQuestionsController::class, 'download']);
 Route::get('/past-questions/stats', [PastQuestionsController::class, 'stats']);
+
+// Public solutions routes (viewing solutions)
+Route::get('/solutions', [SolutionsController::class, 'index']);
+// Protected manage route - must be before /solutions/{id} to prevent route conflicts
+Route::middleware('auth:sanctum')->get('/solutions/manage', [SolutionsController::class, 'mySolutions']);
+Route::get('/solutions/{id}', [SolutionsController::class, 'show']);
+Route::get('/solutions/{id}/download', [SolutionsController::class, 'download']);
 
 // Public courses route (for frontend getCourses)
 Route::get('/courses', function (Request $request) {
@@ -162,6 +176,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload/question', [UploadController::class, 'uploadQuestion']);
     Route::post('/upload/project', [UploadController::class, 'uploadProject']);
     Route::post('/upload/hostel', [UploadController::class, 'uploadHostel']);
+    Route::post('/upload/solution', [UploadController::class, 'uploadSolution']);
 
     // User documents and storage
     Route::get('/storage/usage', [DocumentController::class, 'usage']);
@@ -204,14 +219,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/services/{id}/contact', [ServicesController::class, 'contactProvider']);
 
     // Events (protected operations)
-    Route::get('/events/my-events', [EventsController::class, 'myEvents']);
     Route::post('/events', [EventsController::class, 'store']);
     Route::put('/events/{id}', [EventsController::class, 'update']);
     Route::delete('/events/{id}', [EventsController::class, 'destroy']);
     Route::post('/events/{id}/contact', [EventsController::class, 'contactOrganizer']);
 
+    // Event Tickets (protected operations)
+    Route::post('/events/{eventId}/tickets/{ticketId}/purchase', [EventsController::class, 'purchaseTicket']);
+    Route::get('/events/tickets/purchased', [EventsController::class, 'getPurchasedTickets']);
+    Route::get('/events/tickets/purchased/{id}', [EventsController::class, 'getPurchasedTicket']);
+    Route::get('/events/{eventId}/attendees', [EventsController::class, 'getEventAttendees']);
+
     // Hostels (protected operations)
-    Route::get('/hostels/my-hostels', [HostelsController::class, 'myHostels']);
     Route::post('/hostels', [HostelsController::class, 'store']);
     Route::put('/hostels/{id}', [HostelsController::class, 'update']);
     Route::delete('/hostels/{id}', [HostelsController::class, 'destroy']);
@@ -239,4 +258,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/past-questions', [PastQuestionsController::class, 'store']);
     Route::put('/past-questions/{id}', [PastQuestionsController::class, 'update']);
     Route::delete('/past-questions/{id}', [PastQuestionsController::class, 'destroy']);
+
+    // Solutions (protected operations)
+    Route::post('/solutions', [SolutionsController::class, 'store']);
+    Route::put('/solutions/{id}', [SolutionsController::class, 'update']);
+    Route::delete('/solutions/{id}', [SolutionsController::class, 'destroy']);
+    Route::post('/solutions/{id}/rate', [SolutionsController::class, 'rate']);
+    Route::post('/solutions/{id}/comment', [SolutionsController::class, 'addComment']);
+    Route::post('/solutions/{id}/review', [SolutionsController::class, 'addReview']);
+    Route::get('/solutions/{id}/comments', [SolutionsController::class, 'getComments']);
+    Route::post('/solutions/comments/{commentId}/helpful', [SolutionsController::class, 'markCommentHelpful']);
 });

@@ -63,6 +63,8 @@ class User extends Authenticatable
         'deactivated_at',
         'storage_quota_bytes',
         'storage_used_bytes',
+        'subscription_plan',
+        'subscription_expires_at',
     ];
 
 
@@ -79,6 +81,11 @@ class User extends Authenticatable
     public function referrals()
     {
         return $this->hasMany(User::class, 'referrer_id');
+    }
+
+    public function purchasedTickets()
+    {
+        return $this->hasMany(PurchasedTicket::class);
     }
 
     public function notifications()
@@ -109,6 +116,25 @@ class User extends Authenticatable
             'password' => 'hashed',
             'storage_quota_bytes' => 'integer',
             'storage_used_bytes' => 'integer',
+            'subscription_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if user has premium subscription
+     */
+    public function isPremium(): bool
+    {
+        if ($this->subscription_plan !== 'premium') {
+            return false;
+        }
+
+        // If there's no expiration date, it's a lifetime premium
+        if ($this->subscription_expires_at === null) {
+            return true;
+        }
+
+        // Check if subscription hasn't expired
+        return $this->subscription_expires_at->isFuture();
     }
 }

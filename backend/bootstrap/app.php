@@ -4,7 +4,6 @@ use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,9 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Apply ForceJsonResponse middleware to API routes
+        // Apply middleware to API routes
         $middleware->api(append: [
             \App\Http\Middleware\ForceJsonResponse::class,
+            \App\Http\Middleware\ParseFormDataForPut::class,
         ]);
 
         $middleware->alias([
@@ -26,6 +26,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // Ensure API routes always return JSON responses
         $exceptions->shouldRenderJsonWhen(
-            fn($request, Throwable $e) => $request->is('api/*') || $request->wantsJson()
+            fn($request, \Throwable $e) => $request->is('api/*') || $request->wantsJson()
         );
     })->create();

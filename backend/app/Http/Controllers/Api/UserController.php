@@ -580,13 +580,34 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        // For now, assume a simple free plan unless subscription fields are added later
+        $plan = $user->subscription_plan ?? 'free';
+        $expiresAt = $user->subscription_expires_at;
+
+        // Check if subscription is valid (not expired)
+        $valid = $user->isPremium();
+
+        // Check if subscription renews (has expiration date)
+        $renews = $expiresAt !== null;
+
+        // Determine status
+        $status = 'active';
+        if ($plan === 'premium') {
+            if ($expiresAt && $expiresAt->isPast()) {
+                $status = 'expired';
+                $valid = false;
+            } else {
+                $status = 'active';
+            }
+        } else {
+            $status = 'active'; // Free plan is always active
+        }
+
         $subscription = [
-            'plan' => 'free',
-            'status' => 'active',
-            'valid' => true,
-            'renews' => false,
-            'expires_at' => null,
+            'plan' => $plan,
+            'status' => $status,
+            'valid' => $valid,
+            'renews' => $renews,
+            'expires_at' => $expiresAt ? $expiresAt->toIso8601String() : null,
         ];
 
         return response()->json([
