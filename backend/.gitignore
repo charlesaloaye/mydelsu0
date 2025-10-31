@@ -1,6 +1,0 @@
-# Environment variables - NEVER COMMIT THESE
-.env
-.env.*
-.env.backup
-.env.production
-.env.local
