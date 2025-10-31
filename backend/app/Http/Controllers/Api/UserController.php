@@ -277,8 +277,8 @@ class UserController extends Controller
             ->where('is_verified', true)
             ->count();
 
-        $totalEarnings = ReferralReward::where('referrer_id', $user->id)
-            ->where('status', 'completed')
+        $totalEarnings = ReferralReward::where('user_id', $user->id)
+            ->where('is_paid', true)
             ->sum('amount');
 
         return response()->json([

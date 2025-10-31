@@ -3,16 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\Traits\HasCacheableResponses;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\ReferralReward;
 use App\Models\Announcement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    use HasCacheableResponses;
     /**
      * Get dashboard data
      */
@@ -20,24 +23,26 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Get wallet stats
-        $walletStats = $this->getWalletStats($user);
+        // Cache key includes user ID and timestamp (cache for 5 minutes)
+        $cacheKey = $this->getUserCacheKey('dashboard:index', $user->id);
 
-        // Get recent transactions
-        $recentTransactions = Transaction::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
+        $data = $this->remember($cacheKey, function () use ($user) {
+            // Get wallet stats
+            $walletStats = $this->getWalletStats($user);
 
-        // Get announcements
-        $announcements = $this->getAnnouncements($user);
+            // Get recent transactions
+            $recentTransactions = Transaction::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
 
-        // Get user stats
-        $userStats = $this->getUserStats($user);
+            // Get announcements
+            $announcements = $this->getAnnouncements($user);
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+            // Get user stats
+            $userStats = $this->getUserStats($user);
+
+            return [
                 'user' => [
                     'id' => $user->id,
                     'first_name' => $user->first_name,
@@ -50,7 +55,12 @@ class DashboardController extends Controller
                 'recent_transactions' => $recentTransactions,
                 'announcements' => $announcements,
                 'user_stats' => $userStats
-            ]
+            ];
+        }, 300); // 5 minutes cache
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
         ]);
     }
 
@@ -61,12 +71,17 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $stats = [
-            'wallet' => $this->getWalletStats($user),
-            'referrals' => $this->getReferralStats($user),
-            'transactions' => $this->getTransactionStats($user),
-            'profile' => $this->getProfileStats($user)
-        ];
+        // Cache stats for 5 minutes
+        $cacheKey = $this->getUserCacheKey('dashboard:stats', $user->id);
+
+        $stats = $this->remember($cacheKey, function () use ($user) {
+            return [
+                'wallet' => $this->getWalletStats($user),
+                'referrals' => $this->getReferralStats($user),
+                'transactions' => $this->getTransactionStats($user),
+                'profile' => $this->getProfileStats($user)
+            ];
+        }, 300); // 5 minutes cache
 
         return response()->json([
             'success' => true,
@@ -79,7 +94,12 @@ class DashboardController extends Controller
      */
     public function announcements(Request $request)
     {
-        $announcements = $this->getAnnouncements();
+        // Cache announcements for 10 minutes (they don't change frequently)
+        $cacheKey = 'dashboard:announcements';
+
+        $announcements = $this->remember($cacheKey, function () {
+            return $this->getAnnouncements();
+        }, 600); // 10 minutes cache
 
         return response()->json([
             'success' => true,
@@ -127,8 +147,8 @@ class DashboardController extends Controller
             ->where('is_verified', true)
             ->count();
 
-        $totalEarnings = ReferralReward::where('referrer_id', $user->id)
-            ->where('status', 'completed')
+        $totalEarnings = ReferralReward::where('user_id', $user->id)
+            ->where('is_paid', true)
             ->sum('amount');
 
         $thisMonthReferrals = User::where('referral_number', $user->whatsapp)

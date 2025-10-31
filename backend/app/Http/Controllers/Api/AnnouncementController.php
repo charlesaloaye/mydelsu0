@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\Traits\HasCacheableResponses;
 use App\Models\Announcement;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class AnnouncementController extends Controller
 {
+    use HasCacheableResponses;
     /**
      * Get all announcements for the current user
      */
@@ -19,49 +22,65 @@ class AnnouncementController extends Controller
     {
         try {
             $user = $request->user();
-            $perPage = $request->get('per_page', 10);
-            $type = $request->get('type');
-            $priority = $request->get('priority');
-            $search = $request->get('search');
+            $cacheKey = $this->getUserCacheKey('announcements:index', $user->id, [
+                'per_page' => $request->get('per_page', 10),
+                'type' => $request->get('type'),
+                'priority' => $request->get('priority'),
+                'search' => $request->get('search'),
+                'page' => $request->get('page', 1)
+            ]);
 
-            $query = Announcement::with('creator')
-                ->active()
-                ->published()
-                ->notExpired()
-                ->forAudience('all', $user->department, $user->level ?? null)
-                ->orderBy('is_pinned', 'desc')
-                ->orderBy('priority', 'desc')
-                ->orderBy('created_at', 'desc');
+            // Cache for 10 minutes
+            $result = $this->remember($cacheKey, function () use ($request, $user) {
+                $perPage = $request->get('per_page', 10);
+                $type = $request->get('type');
+                $priority = $request->get('priority');
+                $search = $request->get('search');
 
-            // Filter by type
-            if ($type) {
-                $query->where('type', $type);
-            }
+                $query = Announcement::with('creator')
+                    ->active()
+                    ->published()
+                    ->notExpired()
+                    ->forAudience('all', $user->department, $user->level ?? null)
+                    ->orderBy('is_pinned', 'desc')
+                    ->orderBy('priority', 'desc')
+                    ->orderBy('created_at', 'desc');
 
-            // Filter by priority
-            if ($priority) {
-                $query->where('priority', $priority);
-            }
+                // Filter by type
+                if ($type) {
+                    $query->where('type', $type);
+                }
 
-            // Search
-            if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                      ->orWhere('content', 'like', "%{$search}%");
-                });
-            }
+                // Filter by priority
+                if ($priority) {
+                    $query->where('priority', $priority);
+                }
 
-            $announcements = $query->paginate($perPage);
+                // Search
+                if ($search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%")
+                            ->orWhere('content', 'like', "%{$search}%");
+                    });
+                }
+
+                $announcements = $query->paginate($perPage);
+
+                return [
+                    'data' => $announcements->items(),
+                    'pagination' => [
+                        'current_page' => $announcements->currentPage(),
+                        'last_page' => $announcements->lastPage(),
+                        'per_page' => $announcements->perPage(),
+                        'total' => $announcements->total(),
+                    ]
+                ];
+            }, 600); // 10 minutes cache
 
             return response()->json([
                 'success' => true,
-                'data' => $announcements->items(),
-                'pagination' => [
-                    'current_page' => $announcements->currentPage(),
-                    'last_page' => $announcements->lastPage(),
-                    'per_page' => $announcements->perPage(),
-                    'total' => $announcements->total(),
-                ]
+                'data' => $result['data'],
+                'pagination' => $result['pagination']
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -152,6 +171,9 @@ class AnnouncementController extends Controller
                 'created_by' => $user->id,
             ]);
 
+            // Clear announcement cache after creation
+            Cache::flush(); // In production, consider more granular cache clearing
+
             return response()->json([
                 'success' => true,
                 'message' => 'Announcement created successfully',
@@ -209,8 +231,17 @@ class AnnouncementController extends Controller
             }
 
             $announcement->update($request->only([
-                'title', 'content', 'type', 'priority', 'target_audience',
-                'department', 'level', 'is_active', 'is_pinned', 'image_url', 'attachments'
+                'title',
+                'content',
+                'type',
+                'priority',
+                'target_audience',
+                'department',
+                'level',
+                'is_active',
+                'is_pinned',
+                'image_url',
+                'attachments'
             ]));
 
             if ($request->has('publish_at')) {
@@ -222,6 +253,10 @@ class AnnouncementController extends Controller
             }
 
             $announcement->save();
+
+            // Clear announcement cache after update
+            Cache::forget("announcements:show:{$id}");
+            Cache::flush(); // In production, consider more granular cache clearing
 
             return response()->json([
                 'success' => true,
@@ -254,6 +289,10 @@ class AnnouncementController extends Controller
 
             $announcement = Announcement::findOrFail($id);
             $announcement->delete();
+
+            // Clear announcement cache after deletion
+            Cache::forget("announcements:show:{$id}");
+            Cache::flush(); // In production, consider more granular cache clearing
 
             return response()->json([
                 'success' => true,
@@ -318,17 +357,21 @@ class AnnouncementController extends Controller
         try {
             $user = $request->user();
             $limit = $request->get('limit', 5);
+            $cacheKey = $this->getUserCacheKey('announcements:recent', $user->id, ['limit' => $limit]);
 
-            $announcements = Announcement::with('creator')
-                ->active()
-                ->published()
-                ->notExpired()
-                ->forAudience('all', $user->department, $user->level ?? null)
-                ->orderBy('is_pinned', 'desc')
-                ->orderBy('priority', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->limit($limit)
-                ->get();
+            // Cache for 10 minutes
+            $announcements = $this->remember($cacheKey, function () use ($user, $limit) {
+                return Announcement::with('creator')
+                    ->active()
+                    ->published()
+                    ->notExpired()
+                    ->forAudience('all', $user->department, $user->level ?? null)
+                    ->orderBy('is_pinned', 'desc')
+                    ->orderBy('priority', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->limit($limit)
+                    ->get();
+            }, 600); // 10 minutes cache
 
             return response()->json([
                 'success' => true,

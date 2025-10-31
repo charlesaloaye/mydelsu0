@@ -3,77 +3,93 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\Traits\HasCacheableResponses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use App\Models\MarketplaceItem;
 use App\Models\User;
 
 class MarketplaceController extends Controller
 {
+    use HasCacheableResponses;
     /**
      * Get all marketplace items with filters
      */
     public function index(Request $request)
     {
         try {
-            $query = MarketplaceItem::with('user')
-                ->where('status', 'active')
-                ->orderBy('created_at', 'desc');
+            // Generate cache key based on request parameters
+            $cacheKey = $this->getRequestCacheKey('marketplace:index', $request);
+            $page = $request->get('page', 1);
+            $cacheKey .= ":page:{$page}";
 
-            // Filter by category
-            if ($request->has('category') && $request->category !== 'all') {
-                $query->where('category', $request->category);
-            }
+            // Cache for 10 minutes (marketplace listings don't change too frequently)
+            $result = $this->remember($cacheKey, function () use ($request) {
+                $query = MarketplaceItem::with('user')
+                    ->where('status', 'active')
+                    ->orderBy('created_at', 'desc');
 
-            // Search by title or description
-            if ($request->has('search') && !empty($request->search)) {
-                $searchTerm = $request->search;
-                $query->where(function ($q) use ($searchTerm) {
-                    $q->where('title', 'like', "%{$searchTerm}%")
-                        ->orWhere('description', 'like', "%{$searchTerm}%");
-                });
-            }
+                // Filter by category
+                if ($request->has('category') && $request->category !== 'all') {
+                    $query->where('category', $request->category);
+                }
 
-            // Filter by price range
-            if ($request->has('min_price') && is_numeric($request->min_price)) {
-                $query->where('price', '>=', $request->min_price);
-            }
+                // Search by title or description
+                if ($request->has('search') && !empty($request->search)) {
+                    $searchTerm = $request->search;
+                    $query->where(function ($q) use ($searchTerm) {
+                        $q->where('title', 'like', "%{$searchTerm}%")
+                            ->orWhere('description', 'like', "%{$searchTerm}%");
+                    });
+                }
 
-            if ($request->has('max_price') && is_numeric($request->max_price)) {
-                $query->where('price', '<=', $request->max_price);
-            }
+                // Filter by price range
+                if ($request->has('min_price') && is_numeric($request->min_price)) {
+                    $query->where('price', '>=', $request->min_price);
+                }
 
-            // Sort options
-            $sortBy = $request->get('sort_by', 'newest');
-            switch ($sortBy) {
-                case 'price_low':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_high':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'oldest':
-                    $query->orderBy('created_at', 'asc');
-                    break;
-                case 'newest':
-                default:
-                    $query->orderBy('created_at', 'desc');
-                    break;
-            }
+                if ($request->has('max_price') && is_numeric($request->max_price)) {
+                    $query->where('price', '<=', $request->max_price);
+                }
 
-            $items = $query->paginate(12);
+                // Sort options
+                $sortBy = $request->get('sort_by', 'newest');
+                switch ($sortBy) {
+                    case 'price_low':
+                        $query->orderBy('price', 'asc');
+                        break;
+                    case 'price_high':
+                        $query->orderBy('price', 'desc');
+                        break;
+                    case 'oldest':
+                        $query->orderBy('created_at', 'asc');
+                        break;
+                    case 'newest':
+                    default:
+                        $query->orderBy('created_at', 'desc');
+                        break;
+                }
+
+                $items = $query->paginate(12);
+
+                return [
+                    'data' => $items->items(),
+                    'pagination' => [
+                        'current_page' => $items->currentPage(),
+                        'last_page' => $items->lastPage(),
+                        'per_page' => $items->perPage(),
+                        'total' => $items->total(),
+                    ]
+                ];
+            }, 600); // 10 minutes cache
 
             return response()->json([
                 'success' => true,
-                'data' => $items->items(),
-                'pagination' => [
-                    'current_page' => $items->currentPage(),
-                    'last_page' => $items->lastPage(),
-                    'per_page' => $items->perPage(),
-                    'total' => $items->total(),
-                ]
+                'data' => $result['data'],
+                'pagination' => $result['pagination']
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -90,7 +106,12 @@ class MarketplaceController extends Controller
     public function show($id)
     {
         try {
-            $item = MarketplaceItem::with('user')->findOrFail($id);
+            // Cache individual item for 15 minutes
+            $cacheKey = "marketplace:show:{$id}";
+
+            $item = $this->remember($cacheKey, function () use ($id) {
+                return MarketplaceItem::with('user')->findOrFail($id);
+            }, 900); // 15 minutes cache
 
             return response()->json([
                 'success' => true,
@@ -163,6 +184,9 @@ class MarketplaceController extends Controller
             ]);
 
             $item->load('user');
+
+            // Clear marketplace cache after creation
+            Cache::flush(); // In production, consider more granular cache clearing
 
             return response()->json([
                 'success' => true,
@@ -240,6 +264,10 @@ class MarketplaceController extends Controller
 
             $item->load('user');
 
+            // Clear cache for this specific item and listing cache
+            Cache::forget("marketplace:show:{$id}");
+            Cache::flush(); // In production, consider more granular cache clearing
+
             return response()->json([
                 'success' => true,
                 'message' => 'Marketplace item updated successfully',
@@ -271,6 +299,10 @@ class MarketplaceController extends Controller
 
             $item = MarketplaceItem::where('user_id', Auth::id())->findOrFail($id);
             $item->delete();
+
+            // Clear cache for this specific item and listing cache
+            Cache::forget("marketplace:show:{$id}");
+            Cache::flush(); // In production, consider more granular cache clearing
 
             return response()->json([
                 'success' => true,

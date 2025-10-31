@@ -30,6 +30,7 @@ return [
         'https://www.mydelsu.com',
         'https://gen6ixx.com',
         'https://www.gen6ixx.com',
+        'https://api.gen6ixx.com',
     ],
 
     'allowed_origins_patterns' => [],
