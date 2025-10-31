@@ -1,1 +1,8 @@
 .vercel
+
+# Environment variables - NEVER COMMIT THESE
+.env*
+.env.local
+.env.development
+.env.production
+.env.test
