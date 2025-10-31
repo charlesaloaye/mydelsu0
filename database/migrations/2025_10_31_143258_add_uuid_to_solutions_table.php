@@ -13,13 +13,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Check if solutions table exists
-        if (!Schema::hasTable('solutions')) {
-            // If table doesn't exist, the create_solutions_table migration will handle it
-            // We'll modify that table later or skip this migration
-            return;
-        }
-
         // Create a new table with UUID as primary key
         Schema::create('solutions_new', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -49,35 +42,33 @@ return new class extends Migration
             $table->index(['course_code']);
         });
 
-        // Copy data from old table to new table if table has data
-        if (DB::table('solutions')->count() > 0) {
-            $solutions = DB::table('solutions')->get();
-            foreach ($solutions as $solution) {
-                DB::table('solutions_new')->insert([
-                    'id' => Str::uuid()->toString(),
-                    'user_id' => $solution->user_id,
-                    'past_question_id' => $solution->past_question_id,
-                    'course_code' => $solution->course_code,
-                    'course_title' => $solution->course_title,
-                    'level' => $solution->level,
-                    'semester' => $solution->semester,
-                    'session' => $solution->session,
-                    'department' => $solution->department,
-                    'description' => $solution->description,
-                    'file_path' => $solution->file_path,
-                    'file_name' => $solution->file_name,
-                    'file_size' => $solution->file_size,
-                    'file_type' => $solution->file_type,
-                    'status' => $solution->status,
-                    'admin_notes' => $solution->admin_notes,
-                    'rating' => $solution->rating,
-                    'rating_count' => $solution->rating_count,
-                    'view_count' => $solution->view_count,
-                    'download_count' => $solution->download_count,
-                    'created_at' => $solution->created_at,
-                    'updated_at' => $solution->updated_at,
-                ]);
-            }
+        // Copy data from old table to new table
+        $solutions = DB::table('solutions')->get();
+        foreach ($solutions as $solution) {
+            DB::table('solutions_new')->insert([
+                'id' => Str::uuid()->toString(),
+                'user_id' => $solution->user_id,
+                'past_question_id' => $solution->past_question_id,
+                'course_code' => $solution->course_code,
+                'course_title' => $solution->course_title,
+                'level' => $solution->level,
+                'semester' => $solution->semester,
+                'session' => $solution->session,
+                'department' => $solution->department,
+                'description' => $solution->description,
+                'file_path' => $solution->file_path,
+                'file_name' => $solution->file_name,
+                'file_size' => $solution->file_size,
+                'file_type' => $solution->file_type,
+                'status' => $solution->status,
+                'admin_notes' => $solution->admin_notes,
+                'rating' => $solution->rating,
+                'rating_count' => $solution->rating_count,
+                'view_count' => $solution->view_count,
+                'download_count' => $solution->download_count,
+                'created_at' => $solution->created_at,
+                'updated_at' => $solution->updated_at,
+            ]);
         }
 
         // Drop old table and rename new table
@@ -90,10 +81,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasTable('solutions')) {
-            return;
-        }
-
         // Create a new table with auto-incrementing ID
         Schema::create('solutions_old', function (Blueprint $table) {
             $table->id();
@@ -119,34 +106,32 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Copy data from UUID table to new table if table has data
-        if (DB::table('solutions')->count() > 0) {
-            $solutions = DB::table('solutions')->get();
-            foreach ($solutions as $solution) {
-                DB::table('solutions_old')->insert([
-                    'user_id' => $solution->user_id,
-                    'past_question_id' => $solution->past_question_id,
-                    'course_code' => $solution->course_code,
-                    'course_title' => $solution->course_title,
-                    'level' => $solution->level,
-                    'semester' => $solution->semester,
-                    'session' => $solution->session,
-                    'department' => $solution->department,
-                    'description' => $solution->description,
-                    'file_path' => $solution->file_path,
-                    'file_name' => $solution->file_name,
-                    'file_size' => $solution->file_size,
-                    'file_type' => $solution->file_type,
-                    'status' => $solution->status,
-                    'admin_notes' => $solution->admin_notes,
-                    'rating' => $solution->rating,
-                    'rating_count' => $solution->rating_count,
-                    'view_count' => $solution->view_count,
-                    'download_count' => $solution->download_count,
-                    'created_at' => $solution->created_at,
-                    'updated_at' => $solution->updated_at,
-                ]);
-            }
+        // Copy data from UUID table to new table
+        $solutions = DB::table('solutions')->get();
+        foreach ($solutions as $solution) {
+            DB::table('solutions_old')->insert([
+                'user_id' => $solution->user_id,
+                'past_question_id' => $solution->past_question_id,
+                'course_code' => $solution->course_code,
+                'course_title' => $solution->course_title,
+                'level' => $solution->level,
+                'semester' => $solution->semester,
+                'session' => $solution->session,
+                'department' => $solution->department,
+                'description' => $solution->description,
+                'file_path' => $solution->file_path,
+                'file_name' => $solution->file_name,
+                'file_size' => $solution->file_size,
+                'file_type' => $solution->file_type,
+                'status' => $solution->status,
+                'admin_notes' => $solution->admin_notes,
+                'rating' => $solution->rating,
+                'rating_count' => $solution->rating_count,
+                'view_count' => $solution->view_count,
+                'download_count' => $solution->download_count,
+                'created_at' => $solution->created_at,
+                'updated_at' => $solution->updated_at,
+            ]);
         }
 
         // Drop UUID table and rename old table

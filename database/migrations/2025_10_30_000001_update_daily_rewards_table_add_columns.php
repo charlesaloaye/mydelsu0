@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,29 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         if (!Schema::hasTable('daily_rewards')) {
-            return;
-        }
-
-        // Check if all columns already exist (table was created with full schema)
-        $allColumnsExist = Schema::hasColumn('daily_rewards', 'user_id') &&
-                          Schema::hasColumn('daily_rewards', 'reward_date') &&
-                          Schema::hasColumn('daily_rewards', 'amount') &&
-                          Schema::hasColumn('daily_rewards', 'reward_type') &&
-                          Schema::hasColumn('daily_rewards', 'streak_count') &&
-                          Schema::hasColumn('daily_rewards', 'claimed') &&
-                          Schema::hasColumn('daily_rewards', 'claimed_at');
-
-        // Check if unique constraint already exists
-        $hasUniqueIndex = false;
-        try {
-            $indexes = DB::select("SHOW INDEXES FROM daily_rewards WHERE Key_name = 'daily_rewards_user_id_reward_date_unique'");
-            $hasUniqueIndex = count($indexes) > 0;
-        } catch (\Throwable $e) {
-            // If we can't check, assume it doesn't exist
-        }
-
-        // If all columns and unique constraint already exist, skip this migration
-        if ($allColumnsExist && $hasUniqueIndex) {
             return;
         }
 
@@ -62,13 +38,11 @@ return new class extends Migration
                 $table->timestamp('claimed_at')->nullable()->after('claimed');
             }
 
-            // Only add unique constraint if it doesn't already exist
-            if (!$hasUniqueIndex) {
-                try {
-                    $table->unique(['user_id', 'reward_date'], 'daily_rewards_user_id_reward_date_unique');
-                } catch (\Throwable $e) {
-                    // Index may already exist; ignore for idempotency
-                }
+            // Attempt to add unique index; ignore if it already exists (SQLite-safe)
+            try {
+                $table->unique(['user_id', 'reward_date']);
+            } catch (\Throwable $e) {
+                // Index may already exist; ignore for idempotency
             }
         });
     }

@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Check if solutions table already exists (from add_uuid migration)
-        if (Schema::hasTable('solutions')) {
-            return;
-        }
-
         Schema::create('solutions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('past_question_id')->nullable()->constrained('past_questions')->onDelete('set null');
             $table->string('course_code');
@@ -38,10 +33,6 @@ return new class extends Migration
             $table->integer('view_count')->default(0);
             $table->integer('download_count')->default(0);
             $table->timestamps();
-
-            $table->index(['user_id']);
-            $table->index(['status']);
-            $table->index(['course_code']);
         });
     }
 
